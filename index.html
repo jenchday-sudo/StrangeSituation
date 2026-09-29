@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Live Coder: The Strange Situation</title>
+<style>
+:root{--bg:#f3f5f7;--fg:#1c2733;--mut:#5b6875;--card:#fff;--bd:#c9d1d9;--ac:#0e6b6b;--acfg:#fff;--ok:#17603a;--okbg:#e0f3e7;--bad:#9b1c1c;--badbg:#fbe4e4}
+@media(prefers-color-scheme:dark){:root{--bg:#141b22;--fg:#e4e9ee;--mut:#9aa7b4;--card:#1d2731;--bd:#33414e;--ac:#4cc3c3;--acfg:#0b1a1a;--ok:#8fdcaa;--okbg:#15382a;--bad:#f2a1a1;--badbg:#3f1b1b}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:720px;margin:0 auto;padding:20px 16px 48px}
+h1,h2,h3{font-family:Georgia,"Times New Roman",serif;line-height:1.25;margin:0 0 .5rem}
+h1{font-size:1.7rem}h2{font-size:1.3rem}h3{font-size:1.05rem;margin-top:1.2rem}
+h2:focus{outline:none}
+.prog{color:var(--mut);margin:0 0 .75rem;font-size:.92rem}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:18px;margin-bottom:16px}
+.narr{font-family:Georgia,serif;font-size:1.08rem;border-left:4px solid var(--ac);padding-left:12px;margin:.5rem 0 1rem}
+.log{margin:0 0 16px;padding:0;list-style:none;color:var(--mut);font-size:.92rem}
+.log li{padding:6px 0;border-bottom:1px solid var(--bd)}
+.log strong{color:var(--fg)}
+fieldset{border:0;padding:0;margin:0 0 1rem}
+legend{font-weight:600;margin-bottom:.5rem;padding:0}
+.scale{margin:0 0 14px}
+.scale small,.opt small{color:var(--mut)}
+.pills{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap}
+.pills label{position:relative;cursor:pointer}
+.pills input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.pills span{display:block;min-width:2.5rem;text-align:center;padding:.5rem 0;border:1px solid var(--bd);border-radius:6px;background:var(--bg)}
+.pills input:checked+span{background:var(--ac);color:var(--acfg);border-color:var(--ac);font-weight:700}
+.pills input:focus-visible+span,.opt input:focus-visible+div{outline:3px solid var(--ac);outline-offset:2px}
+.opt{display:block;position:relative;margin-bottom:8px;cursor:pointer}
+.opt input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.opt div{border:1px solid var(--bd);border-radius:8px;padding:10px 12px;background:var(--bg)}
+.opt input:checked+div{border-color:var(--ac);box-shadow:inset 0 0 0 2px var(--ac)}
+button{font:inherit;font-weight:600;background:var(--ac);color:var(--acfg);border:0;border-radius:8px;padding:.65rem 1.2rem;cursor:pointer}
+button:disabled{opacity:.4;cursor:not-allowed}
+button:focus-visible{outline:3px solid var(--fg);outline-offset:2px}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.93rem}
+th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--bd)}
+td.ok{color:var(--ok);font-weight:600}td.bad{color:var(--bad);font-weight:600}
+.v{padding:10px 12px;border-radius:8px;font-weight:600}
+.v.ok{background:var(--okbg);color:var(--ok)}.v.bad{background:var(--badbg);color:var(--bad)}
+.note{color:var(--mut);font-size:.88rem}
+</style>
+</head>
+<body>
+<main>
+<h1>Live Coder: The Strange Situation</h1>
+<div id="app"></div>
+</main>
+<script>
+const EPS=["Parent and infant enter the room","Parent and infant alone; infant free to explore","Stranger enters, talks with the parent, then approaches the infant","First separation: parent leaves, stranger stays with the infant","First reunion: parent returns, stranger leaves","Second separation: infant is left alone","Stranger returns to the room","Second reunion: parent returns, stranger leaves"];
+const SC=[["Proximity and contact seeking","Approaching, reaching, or signalling to be picked up or held."],["Contact maintaining","Clinging, or protesting when put down, to keep contact once made."],["Avoidance","Ignoring, looking or turning away, or moving away from the parent."],["Resistance","Angry or ambivalent behaviour: pushing away, kicking, squirming, or not being soothed."]];
+const T={A:["Insecure-avoidant (A)","Explores freely, little distress at separation, ignores or avoids the parent at reunion."],B:["Secure (B)","Uses the parent as a secure base, distressed at separation, seeks contact at reunion and is soothed."],C:["Insecure-ambivalent/resistant (C)","Wary and clingy, very distressed at separation, seeks contact at reunion but resists and is hard to soothe."],D:["Disorganised/disoriented (D)","Contradictory, fearful or frozen behaviour at reunion, with no coherent strategy."]};
+const CASES=[
+{name:"Mia",age:12,type:"B",narr:["Mia is carried in and set down among the toys.","She crawls off to explore, glancing back at her mother every minute or so and smiling.","A stranger enters. Mia pauses and watches, moves to her mother's side, then slowly warms up.","Mother leaves. Mia stops playing, watches the door and cries. The stranger's comforting only partly works.","Mother returns. Mia crawls to her at once, lifts her arms and clings. Her crying stops within moments.","Mia is left alone. She cries, calls out and bangs on the door.","The stranger enters. Mia accepts a little comfort but keeps looking at the door.","Mother returns. Mia reaches up, is picked up and moulds to her. After a while she squirms down and goes back to her toys."],exp:{4:[6,5,1,1],7:[6,6,1,1]},why:"Distress at separation is not the criterion. What marks Mia as secure is what happens at reunion: she actively seeks contact, is settled quickly, and returns to exploring with her mother as a secure base. Proximity seeking is high while avoidance and resistance are near zero."},
+{name:"Sam",age:13,type:"A",narr:["Sam is carried in and put down among the toys.","He plays absorbed with the toys and rarely looks at his mother or brings a toy to show her.","A stranger enters. Sam glances up, then returns to the toys. He shows little wariness.","Mother leaves. Sam barely looks up and keeps playing, with no visible distress.","Mother returns and says his name. Sam glances at her, turns to a toy and does not approach. When picked up he stays limp and looks away.","Sam is alone. He whimpers briefly, then goes back to playing.","The stranger enters. Sam treats her much as he treated his mother, and takes a toy she offers.","Mother returns. Sam looks toward her, then turns his back and focuses on a toy. He squirms when she picks him up."],exp:{4:[2,1,6,1],7:[1,1,7,1]},why:"Sam looks calm and independent, but the avoidance at reunion is what defines the A pattern: he ignores, turns from and moves away from his mother. Note that he treats the stranger and his mother alike. Physiological studies (e.g., Spangler and Grossmann, 1993) suggest avoidant infants may still be aroused despite appearing unbothered."},
+{name:"Priya",age:12,type:"C",narr:["Priya is carried in and clings to her mother before being set down.","She stays close to her mother and explores very little. She fusses whenever her mother moves away.","A stranger enters. Priya becomes wary, clings to her mother and will not warm to the stranger.","Mother leaves. Priya becomes intensely distressed and cries loudly.","Mother returns. Priya reaches for her, then arches away, pushes at her and kicks. She keeps crying angrily even when held.","Priya is alone. She is very distressed and cries hard and continuously.","The stranger enters. Priya rejects her attempts at comfort and cries harder.","Mother returns. Priya seeks contact but resists being held, alternately clinging and hitting. She is still upset when the session ends."],exp:{4:[6,5,1,6],7:[6,5,1,7]},why:"Priya wants closeness but cannot be soothed by it. That combination of strong contact seeking and marked resistance, along with little exploration and wariness of the stranger, is the C pattern. She is not simply clingy: the anger toward the parent at reunion is the key evidence."},
+{name:"Leo",age:14,type:"D",narr:["Leo is carried in and put down among the toys.","He plays for a while, but stops now and then to watch his mother warily.","A stranger enters. Leo looks back and forth between the stranger and his mother with no clear pattern.","Mother leaves. Leo cries and searches at the door.","Mother returns. Leo starts toward her, then stops, stands still and stares blankly for several seconds, then turns away with his head averted.","Leo is alone. He cries, then sits motionless for a while.","The stranger enters. Leo seems oddly calm with her and moves closer to her than to his mother's empty chair.","Mother returns. Leo moves toward her with his head turned away, then falls face-down on the floor, rocks, and freezes."],exp:{4:[3,2,4,3],7:[3,2,4,2]},why:"Leo has no coherent strategy for using his mother when distressed. Approaching then freezing, approaching with the head averted, and rocking on the floor are the specific behaviours that Main and Solomon (1990) used to define D, and the four scales do not capture them, so his scale profile looks mixed. D is usually coded alongside a best-fitting A, B or C category, and is associated with frightening or frightened parental behaviour."}];
+const $=s=>document.querySelector(s),app=$('#app');
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+let st;
+function start(){st={screen:'intro',order:shuffle([0,1,2,3]),ci:0,ep:0,rate:{4:{},7:{}},cls:null,res:[]};render()}
+const C=()=>CASES[st.order[st.ci]];
+function render(){
+  app.innerHTML=({intro,case:caseView,result:resultView,final:finalView})[st.screen]();
+  bind();
+  const h=app.querySelector('h2');if(h){h.tabIndex=-1;h.focus()}
+}
+function intro(){return `<section class="card"><h2>You are the observer</h2>
+<p>In Mary Ainsworth's Strange Situation, an infant of about 12 to 18 months goes through eight short episodes involving a parent and a stranger. You will read through four infants' sessions, one episode at a time.</p>
+<p>The classification depends mostly on the infant's behaviour at the <strong>two reunions</strong> (Episodes 5 and 8), not on how upset the infant is at separation. At each reunion you will rate four behaviours from 1 (none) to 7 (extreme). After Episode 8 you will classify the infant, then compare your coding with an expert's.</p>
+<p class="note">These cases are constructed for teaching. Real coding uses video and trained coders (Ainsworth et al., 1978; Main and Solomon, 1990).</p>
+<button id="start">Start coding</button></section>`}
+function rateForm(e){return `<fieldset><legend>Rate the infant's behaviour at this reunion (1 = none, 7 = extreme)</legend>`+SC.map((s,i)=>`<div class="scale"><strong>${s[0]}</strong><br><small>${s[1]}</small><div class="pills" role="radiogroup" aria-label="${s[0]}">`+[1,2,3,4,5,6,7].map(n=>`<label><input type="radio" name="s${i}" value="${n}" aria-label="${s[0]}: ${n}"><span>${n}</span></label>`).join('')+`</div></div>`).join('')+`</fieldset>`}
+function caseView(){
+  const c=C(),e=st.ep;
+  let h=`<p class="prog">Case ${st.ci+1} of 4: ${c.name}, ${c.age} months</p>`;
+  const shown=Math.min(e,8);
+  if(shown>0)h+=`<ol class="log" aria-label="Earlier episodes">`+EPS.slice(0,shown).map((t,i)=>`<li><strong>Episode ${i+1}.</strong> ${c.narr[i]}</li>`).join('')+`</ol>`;
+  if(e<8){
+    const rating=e===4||e===7;
+    h+=`<section class="card"><h2>Episode ${e+1}: ${EPS[e]}</h2><p class="narr">${c.narr[e]}</p>${rating?rateForm(e):''}<button id="next" ${rating?'disabled':''}>${e<7?'Next episode':'Continue to classification'}</button></section>`;
+  }else{
+    h+=`<section class="card"><h2>Classify ${c.name}</h2><fieldset><legend>Which attachment classification best fits?</legend>`+Object.keys(T).map(k=>`<label class="opt"><input type="radio" name="cls" value="${k}"><div><strong>${T[k][0]}</strong><br><small>${T[k][1]}</small></div></label>`).join('')+`</fieldset><button id="sub" disabled>Submit classification</button></section>`;
+  }
+  return h;
+}
+function submit(){
+  const c=C();let close=0;
+  [4,7].forEach(e=>{for(let i=0;i<4;i++)if(Math.abs(st.rate[e][i]-c.exp[e][i])<=1)close++});
+  st.res[st.ci]={ok:st.cls===c.type,close,pick:st.cls};
+  st.screen='result';render();
+}
+function resultView(){
+  const c=C(),r=st.res[st.ci];
+  let h=`<p class="prog">Case ${st.ci+1} of 4: ${c.name}, ${c.age} months</p><section class="card"><h2>Feedback for ${c.name}</h2>`;
+  h+=`<p class="v ${r.ok?'ok':'bad'}">${r.ok?'✓ Correct: ':'✗ Not quite: '}you chose ${T[r.pick][0]}${r.ok?'.':`, and the expert classification is ${T[c.type][0]}.`}</p>`;
+  [4,7].forEach(e=>{
+    h+=`<h3>${e===4?'First':'Second'} reunion (Episode ${e+1})</h3><div class="tw"><table><thead><tr><th>Behaviour</th><th>You</th><th>Expert</th><th>Result</th></tr></thead><tbody>`+SC.map((s,i)=>{const d=Math.abs(st.rate[e][i]-c.exp[e][i]);return `<tr><td>${s[0]}</td><td>${st.rate[e][i]}</td><td>${c.exp[e][i]}</td><td class="${d<=1?'ok':'bad'}">${d===0?'✓ Exact':d===1?'✓ Within 1':'✗ Off by '+d}</td></tr>`}).join('')+`</tbody></table></div>`;
+  });
+  h+=`<h3>Why this classification</h3><p>${c.why}</p><button id="go">${st.ci<3?'Next case':'See summary'}</button></section>`;
+  return h;
+}
+function finalView(){
+  const ok=st.res.filter(r=>r.ok).length,cl=st.res.reduce((a,r)=>a+r.close,0);
+  return `<section class="card"><h2>Summary</h2>
+<p><strong>Classifications correct:</strong> ${ok} of 4<br><strong>Ratings within 1 point of the expert:</strong> ${cl} of 32</p>
+<h3>Points to take away</h3>
+<ul><li>Reunion behaviour, not separation distress, drives the classification.</li>
+<li>Avoidant infants can look calm and independent, yet avoid the parent at reunion.</li>
+<li>Resistant infants seek contact and reject it at once, so they are hard to soothe.</li>
+<li>Disorganised behaviour is coded from specific signs such as freezing and conflicting movements, which the four scales miss.</li></ul>
+<p>Discussion: What might these cases look like in a different culture, or for an infant with a very different temperament? What are the limits of a 20-minute lab procedure?</p>
+<button id="again">Try again with a new order</button></section>`;
+}
+function bind(){
+  app.querySelectorAll('.pills input').forEach(r=>r.onchange=()=>{st.rate[st.ep][+r.name.slice(1)]=+r.value;$('#next').disabled=Object.keys(st.rate[st.ep]).length<4});
+  app.querySelectorAll('input[name=cls]').forEach(r=>r.onchange=()=>{st.cls=r.value;$('#sub').disabled=false});
+  const on=(id,f)=>{const b=$(id);if(b)b.onclick=f};
+  on('#start',()=>{st.screen='case';render()});
+  on('#next',()=>{st.ep++;render()});
+  on('#sub',submit);
+  on('#go',()=>{if(st.ci<3){st.ci++;st.ep=0;st.rate={4:{},7:{}};st.cls=null;st.screen='case'}else st.screen='final';render()});
+  on('#again',start);
+}
+start();
+</script>
+</body>
+</html>
